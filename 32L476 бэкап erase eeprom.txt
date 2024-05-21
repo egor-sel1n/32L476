@@ -1,0 +1,58 @@
+//-------------------------------------
+void erase_eeprom ()
+{
+
+#define 	BUFFER_SIZE   	16
+#define 	MAX_ADDR 		256
+
+uint8_t dock_in[BUFFER_SIZE];
+uint8_t dock_out[BUFFER_SIZE];
+
+
+
+
+		HAL_GPIO_WritePin(D5_GPIO_Port, D5_Pin, SET);
+		HAL_Delay(2000);
+
+		HAL_GPIO_WritePin(D5_GPIO_Port, D5_Pin, RESET);
+		HAL_Delay(500);
+
+		uint16_t i=0x00;
+
+		for(i=0; i<BUFFER_SIZE; i++)
+		{
+			dock_in[i]=0xFF;
+			dock_out[i]=0;
+		}
+		dock_out[BUFFER_SIZE-1]=13;
+
+
+
+		///-------general cycle------
+		for(i=0x00; i<MAX_ADDR; i++)
+		{
+			HAL_I2C_Mem_Write(&hi2c2, 0xA0, i, I2C_MEMADD_SIZE_8BIT, dock_in, BUFFER_SIZE, 1000);
+			HAL_Delay(500);
+
+			HAL_I2C_Mem_Read(&hi2c2, 0xA0, i, I2C_MEMADD_SIZE_8BIT, dock_out, BUFFER_SIZE, 1000);
+			HAL_UART_Transmit(&huart4, dock_out, 1, 1000);
+
+			dock_out[1]=i;
+			dock_out[2]=13;
+			dock_out[0]=13;
+
+			HAL_UART_Transmit(&huart4, dock_out, 3, 1000);
+
+		}
+
+		HAL_Delay(1500);
+
+		HAL_GPIO_WritePin(D5_GPIO_Port, D5_Pin, SET);
+
+		HAL_Delay(1500);
+
+
+}
+
+
+
